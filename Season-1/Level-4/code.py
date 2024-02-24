@@ -132,10 +132,20 @@ class DB_CRUD_ops(object):
             db_con = con.create_connection(db_path)
             cur = db_con.cursor()
 
+            #Sanitize stock_symbol
+            # a block list (aka restricted characters) that should not exist in user-supplied input
+            restricted_char_array = [';', '%', '&', '^', '!', '#', '-', ' ', '"', "'", ',']
+            index = 0
+            while(index < len(stock_symbol)):
+                if stock_symbol[index] in restricted_char_array:
+                    stock_symbol = stock_symbol[:index]
+                    break
+                index+=1
+
             res = "[METHOD EXECUTED] get_stock_price\n"
             query = "SELECT price FROM stocks WHERE symbol = '" + stock_symbol + "'"
             res += "[QUERY] " + query + "\n"
-            if ';' in query:
+            if ';' in query: # Now useless due to sanitization
                 res += "[SCRIPT EXECUTION]\n"
                 cur.executescript(query)
             else:
@@ -164,6 +174,16 @@ class DB_CRUD_ops(object):
 
             if not isinstance(price, float):
                 raise Exception("ERROR: stock price provided is not a float")
+            
+            #Sanitize stock_symbol
+            # a block list (aka restricted characters) that should not exist in user-supplied input
+            restricted_char_array = [';', '%', '&', '^', '!', '#', '-', ' ', '"', "'", ',']
+            index = 0
+            while(index < len(stock_symbol)):
+                if stock_symbol[index] in restricted_char_array:
+                    stock_symbol = stock_symbol[:index]
+                    break
+                index+=1
 
             res = "[METHOD EXECUTED] update_stock_price\n"
             # UPDATE stocks SET price = 310.0 WHERE symbol = 'MSFT'
@@ -187,63 +207,63 @@ class DB_CRUD_ops(object):
     # Example: SELECT price FROM stocks WHERE symbol = 'MSFT';
     #          SELECT * FROM stocks WHERE symbol = 'MSFT'
     # Example: UPDATE stocks SET price = 310.0 WHERE symbol = 'MSFT'
-    def exec_multi_query(self, query):
-        # building database from scratch as it is more suitable for the purpose of the lab
-        db = Create()
-        con = Connect()
-        try:
-            path = os.path.dirname(os.path.abspath(__file__))
-            db_path = os.path.join(path, 'level-4.db')
-            db_con = con.create_connection(db_path)
-            cur = db_con.cursor()
+    # def exec_multi_query(self, query):
+    #     # building database from scratch as it is more suitable for the purpose of the lab
+    #     db = Create()
+    #     con = Connect()
+    #     try:
+    #         path = os.path.dirname(os.path.abspath(__file__))
+    #         db_path = os.path.join(path, 'level-4.db')
+    #         db_con = con.create_connection(db_path)
+    #         cur = db_con.cursor()
 
-            res = "[METHOD EXECUTED] exec_multi_query\n"
-            for query in filter(None, query.split(';')):
-                res += "[QUERY]" + query + "\n"
-                query = query.strip()
-                cur.execute(query)
-                db_con.commit()
+    #         res = "[METHOD EXECUTED] exec_multi_query\n"
+    #         for query in filter(None, query.split(';')):
+    #             res += "[QUERY]" + query + "\n"
+    #             query = query.strip()
+    #             cur.execute(query)
+    #             db_con.commit()
 
-                query_outcome = cur.fetchall()
-                for result in query_outcome:
-                    res += "[RESULT] " + str(result) + " "
-            return res
+    #             query_outcome = cur.fetchall()
+    #             for result in query_outcome:
+    #                 res += "[RESULT] " + str(result) + " "
+    #         return res
 
-        except sqlite3.Error as e:
-            print(f"ERROR: {e}")
+    #     except sqlite3.Error as e:
+    #         print(f"ERROR: {e}")
 
-        finally:
-            db_con.close()
+    #     finally:
+    #         db_con.close()
 
     # executes any query or multiple queries as defined from the user in the form of script
     # Example: SELECT price FROM stocks WHERE symbol = 'MSFT';
     #          SELECT * FROM stocks WHERE symbol = 'MSFT'
-    def exec_user_script(self, query):
-        # building database from scratch as it is more suitable for the purpose of the lab
-        db = Create()
-        con = Connect()
-        try:
-            path = os.path.dirname(os.path.abspath(__file__))
-            db_path = os.path.join(path, 'level-4.db')
-            db_con = con.create_connection(db_path)
-            cur = db_con.cursor()
+    # def exec_user_script(self, query):
+    #     # building database from scratch as it is more suitable for the purpose of the lab
+    #     db = Create()
+    #     con = Connect()
+    #     try:
+    #         path = os.path.dirname(os.path.abspath(__file__))
+    #         db_path = os.path.join(path, 'level-4.db')
+    #         db_con = con.create_connection(db_path)
+    #         cur = db_con.cursor()
 
-            res = "[METHOD EXECUTED] exec_user_script\n"
-            res += "[QUERY] " + query + "\n"
-            if ';' in query:
-                res += "[SCRIPT EXECUTION]"
-                cur.executescript(query)
-                db_con.commit()
-            else:
-                cur.execute(query)
-                db_con.commit()
-                query_outcome = cur.fetchall()
-                for result in query_outcome:
-                    res += "[RESULT] " + str(result)
-            return res
+    #         res = "[METHOD EXECUTED] exec_user_script\n"
+    #         res += "[QUERY] " + query + "\n"
+    #         if ';' in query:
+    #             res += "[SCRIPT EXECUTION]"
+    #             cur.executescript(query)
+    #             db_con.commit()
+    #         else:
+    #             cur.execute(query)
+    #             db_con.commit()
+    #             query_outcome = cur.fetchall()
+    #             for result in query_outcome:
+    #                 res += "[RESULT] " + str(result)
+    #         return res
 
-        except sqlite3.Error as e:
-            print(f"ERROR: {e}")
+    #     except sqlite3.Error as e:
+    #         print(f"ERROR: {e}")
 
-        finally:
-            db_con.close()
+    #     finally:
+    #         db_con.close()
