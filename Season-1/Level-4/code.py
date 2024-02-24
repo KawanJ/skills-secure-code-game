@@ -88,8 +88,24 @@ class DB_CRUD_ops(object):
             db_con = con.create_connection(db_path)
             cur = db_con.cursor()
 
+            #check stock_symbol
+            sanitized_stock_symbol = ""
+            # a block list (aka restricted characters) that should not exist in user-supplied input
+            restricted_char_array = [';', '%', '&', '^', '!', '#', '-', ' ', '"', "'", ',']
+            index = 0
+            while(index < len(stock_symbol)):
+                if stock_symbol[index] in restricted_char_array:
+                    res = "[METHOD EXECUTED] get_stock_info\n"
+                    query = "SELECT * FROM stocks WHERE symbol = '{0}'".format(stock_symbol)
+                    res += "[QUERY] " + query + "\n"
+                    res += "CONFIRM THAT THE ABOVE QUERY IS NOT MALICIOUS TO EXECUTE"
+                    return res
+                else:
+                    sanitized_stock_symbol += stock_symbol[index]
+                index+=1
+
             res = "[METHOD EXECUTED] get_stock_info\n"
-            query = "SELECT * FROM stocks WHERE symbol = '{0}'".format(stock_symbol)
+            query = "SELECT * FROM stocks WHERE symbol = '{0}'".format(sanitized_stock_symbol)
             res += "[QUERY] " + query + "\n"
 
             # a block list (aka restricted characters) that should not exist in user-supplied input
@@ -133,17 +149,20 @@ class DB_CRUD_ops(object):
             cur = db_con.cursor()
 
             #Sanitize stock_symbol
+            sanitized_stock_symbol = ""
             # a block list (aka restricted characters) that should not exist in user-supplied input
             restricted_char_array = [';', '%', '&', '^', '!', '#', '-', ' ', '"', "'", ',']
             index = 0
             while(index < len(stock_symbol)):
                 if stock_symbol[index] in restricted_char_array:
-                    stock_symbol = stock_symbol[:index]
+                    sanitized_stock_symbol = stock_symbol[:index]
                     break
+                else:
+                    sanitized_stock_symbol += stock_symbol[index]
                 index+=1
 
             res = "[METHOD EXECUTED] get_stock_price\n"
-            query = "SELECT price FROM stocks WHERE symbol = '" + stock_symbol + "'"
+            query = "SELECT price FROM stocks WHERE symbol = '" + sanitized_stock_symbol + "'"
             res += "[QUERY] " + query + "\n"
             if ';' in query: # Now useless due to sanitization
                 res += "[SCRIPT EXECUTION]\n"
@@ -176,18 +195,21 @@ class DB_CRUD_ops(object):
                 raise Exception("ERROR: stock price provided is not a float")
             
             #Sanitize stock_symbol
+            sanitized_stock_symbol = ""
             # a block list (aka restricted characters) that should not exist in user-supplied input
             restricted_char_array = [';', '%', '&', '^', '!', '#', '-', ' ', '"', "'", ',']
             index = 0
             while(index < len(stock_symbol)):
                 if stock_symbol[index] in restricted_char_array:
-                    stock_symbol = stock_symbol[:index]
+                    sanitized_stock_symbol = stock_symbol[:index]
                     break
+                else:
+                    sanitized_stock_symbol += stock_symbol[index]
                 index+=1
 
             res = "[METHOD EXECUTED] update_stock_price\n"
             # UPDATE stocks SET price = 310.0 WHERE symbol = 'MSFT'
-            query = "UPDATE stocks SET price = '%d' WHERE symbol = '%s'" % (price, stock_symbol)
+            query = "UPDATE stocks SET price = '%d' WHERE symbol = '%s'" % (price, sanitized_stock_symbol)
             res += "[QUERY] " + query + "\n"
 
             cur.execute(query)
